@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beauty Francyelle — Painel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --ink:#0B0B0B;
+    --ink-soft:#2A2A28;
+    --gold:#C79A4B;
+    --gold-soft:#DDAF69;
+    --gold-pale:#F3E4C8;
+    --paper:#FFFFFF;
+    --paper-warm:#FBF9F5;
+    --line:#E7E1D3;
+    --danger:#8C2E2E;
+    --ok:#3E5B3E;
+    --radius:2px;
+    --font-display:'Fraunces', serif;
+    --font-body:'Manrope', sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#F5F3EE; --ink-soft:#D8D3C6; --paper:#0F0F0E; --paper-warm:#151412;
+      --line:#2A2822; --gold-pale:#2A2313;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#F5F3EE; --ink-soft:#D8D3C6; --paper:#0F0F0E; --paper-warm:#151412;
+    --line:#2A2822; --gold-pale:#2A2313;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--paper-warm);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold-pale);color:var(--ink);}
+  input,select,button,textarea{font-family:inherit;font-size:15px;}
+  a{color:inherit;}
+
+  /* ---------- Login ---------- */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--ink);
+    padding:24px;
+  }
+  .login-card{
+    width:100%;
+    max-width:380px;
+    background:var(--paper);
+    padding:44px 36px 36px;
+    border-top:3px solid var(--gold-soft);
+  }
+  .brand{
+    font-family:var(--font-display);
+    font-size:15px;
+    letter-spacing:.14em;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  .login-card h1{
+    font-family:var(--font-display);
+    font-weight:500;
+    font-size:28px;
+    margin:0 0 28px;
+    color:var(--ink);
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--paper-warm);
+    color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--gold-soft);outline-offset:1px;border-color:var(--gold-soft);}
+  .pass-wrap{position:relative;display:flex;align-items:center;}
+  .pass-wrap input{padding-right:64px;width:100%;}
+  .pass-toggle{
+    position:absolute;right:4px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;
+    font-size:11.5px;font-weight:700;letter-spacing:.02em;
+    color:var(--ink-soft);padding:7px 8px;
+  }
+  .pass-toggle:hover{color:var(--gold);}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 20px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:var(--radius);
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .btn:hover{background:var(--gold-soft);border-color:var(--gold-soft);color:var(--ink);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-full{width:100%;margin-top:8px;}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--gold-pale);border-color:var(--gold-soft);}
+  .btn-gold{background:var(--gold-soft);border-color:var(--gold-soft);color:var(--ink);}
+  .btn-gold:hover{background:var(--gold);}
+  .btn-danger{background:transparent;border-color:var(--danger);color:var(--danger);}
+  .btn-danger:hover{background:var(--danger);color:#fff;}
+  .login-toggle{
+    margin-top:18px;
+    text-align:center;
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+  .login-toggle button{
+    background:none;border:none;color:var(--gold);cursor:pointer;
+    font-weight:700;text-decoration:underline;padding:0;font-size:13.5px;
+  }
+  .login-error{
+    background:#FBEAEA;color:var(--danger);
+    border:1px solid #E9C6C6;
+    padding:10px 12px;border-radius:var(--radius);
+    font-size:13px;margin-bottom:16px;display:none;
+  }
+
+  /* ---------- App shell ---------- */
+  #app{display:none;min-height:100vh;}
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{
+    width:230px;
+    flex-shrink:0;
+    background:#0B0B0B;
+    color:#FFFFFF;
+    display:flex;
+    flex-direction:column;
+    padding:28px 0 20px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .sidebar .brand-row{padding:0 24px 26px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:18px;}
+  .sidebar .brand-name{
+    font-family:var(--font-display);
+    font-size:19px;
+    color:var(--gold-soft);
+    line-height:1.25;
+    margin:0;
+  }
+  .sidebar .brand-sub{font-size:11px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-top:4px;text-transform:uppercase;}
+  nav.nav{display:flex;flex-direction:column;gap:2px;padding:0 12px;flex:1;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 12px;
+    border-radius:var(--radius);
+    color:rgba(255,255,255,.72);
+    cursor:pointer;
+    font-size:14.5px;
+    font-weight:600;
+    border:1px solid transparent;
+  }
+  .nav-item:hover{color:#fff;background:rgba(255,255,255,.06);}
+  .nav-item.active{color:#0B0B0B;background:var(--gold-soft);}
+  .nav-icon{width:17px;height:17px;flex-shrink:0;}
+  .sidebar-footer{padding:14px 20px 0;border-top:1px solid rgba(255,255,255,.12);margin-top:14px;}
+  .sidebar-user{font-size:12.5px;color:rgba(255,255,255,.55);margin-bottom:10px;word-break:break-all;}
+  .link-btn{
+    background:none;border:none;color:rgba(255,255,255,.65);
+    font-size:13px;cursor:pointer;padding:0;text-decoration:underline;
+  }
+  .link-btn:hover{color:var(--gold-soft);}
+
+  main.content{flex:1;min-width:0;padding:36px 44px 60px;}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+  .page-head h2{
+    font-family:var(--font-display);
+    font-weight:500;
+    font-size:30px;
+    margin:0;
+  }
+  .page-head p{margin:4px 0 0;color:var(--ink-soft);font-size:14px;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:32px;}
+  .kpi{background:var(--paper);padding:20px 22px;}
+  .kpi .label{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;}
+  .kpi .value{font-family:var(--font-display);font-size:30px;margin-top:6px;color:var(--ink);}
+  .kpi .value.gold{color:var(--gold);}
+  .kpi .sub{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+
+  .panel{background:var(--paper);border:1px solid var(--line);margin-bottom:24px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap;}
+  .panel-head h3{font-family:var(--font-display);font-weight:500;font-size:19px;margin:0;}
+  .panel-body{padding:22px;}
+  .panel-body.no-pad{padding:0;}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  thead th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink-soft);padding:12px 20px;border-bottom:1px solid var(--line);
+    font-weight:700;
+  }
+  tbody td{padding:13px 20px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--paper-warm);}
+  .row-actions{display:flex;gap:14px;}
+  .row-actions button{background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-soft);text-decoration:underline;padding:0;}
+  .row-actions button:hover{color:var(--gold);}
+  .row-actions button.danger:hover{color:var(--danger);}
+
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.02em;}
+  .badge.confirmado{background:#E9F1E9;color:var(--ok);}
+  .badge.pendente{background:var(--gold-pale);color:#8A6A1E;}
+  .badge.cancelado{background:#FBEAEA;color:var(--danger);}
+  .badge.entrada{background:#E9F1E9;color:var(--ok);}
+  .badge.saida{background:#FBEAEA;color:var(--danger);}
+  .badge.baixo{background:#FBEAEA;color:var(--danger);}
+  .badge.ok-estoque{background:#E9F1E9;color:var(--ok);}
+
+  .empty{padding:44px 22px;text-align:center;color:var(--ink-soft);}
+  .empty strong{display:block;font-family:var(--font-display);font-size:18px;color:var(--ink);margin-bottom:6px;font-weight:500;}
+
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .toolbar input[type=date], .toolbar select, .toolbar input[type=text]{
+    padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-warm);color:var(--ink);
+  }
+
+  /* modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(11,11,11,.55);
+    align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--paper);width:100%;max-width:440px;
+    border-top:3px solid var(--gold-soft);
+    max-height:88vh;overflow-y:auto;
+  }
+  .modal-head{padding:22px 26px 0;}
+  .modal-head h3{font-family:var(--font-display);font-weight:500;font-size:21px;margin:0 0 20px;}
+  .modal-body{padding:0 26px 26px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid .full{grid-column:1/-1;}
+  .field select, .field textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);
+    background:var(--paper-warm);color:var(--ink);
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+
+  .fab-add{display:flex;align-items:center;gap:8px;}
+  .muted{color:var(--ink-soft);font-size:13px;}
+
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;}
+  .tab{padding:10px 4px;margin-right:22px;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--ink);border-bottom-color:var(--gold-soft);}
+
+  /* ---------- Calendário (Agenda) ---------- */
+  .calendar-toolbar{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:12px;}
+  .cal-nav{display:flex;align-items:center;gap:8px;}
+  .cal-nav button{background:none;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;color:var(--ink);font-family:inherit;}
+  .cal-nav button:hover{border-color:var(--gold-soft);color:var(--gold);}
+  #cal-prev, #cal-next{width:32px;height:32px;font-size:16px;line-height:1;}
+  #cal-hoje{padding:0 14px;height:32px;font-size:12.5px;font-weight:700;}
+  .cal-month-label{font-family:var(--font-display);font-size:20px;font-weight:500;text-transform:capitalize;}
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cal-weekday{padding:10px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);text-align:center;border-bottom:1px solid var(--line);font-weight:700;}
+  .cal-day{
+    min-height:98px;
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:7px;
+    cursor:pointer;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .cal-day:nth-child(7n){border-right:none;}
+  .cal-day.outside{background:var(--paper-warm);opacity:.4;}
+  .cal-day:hover{background:var(--gold-pale);}
+  .cal-day.selected{background:var(--gold-pale);box-shadow:inset 0 0 0 2px var(--gold-soft);}
+  .cal-day-num{font-size:12.5px;font-weight:700;width:21px;height:21px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+  .cal-day.today .cal-day-num{background:var(--gold-soft);color:#0B0B0B;}
+  .cal-chip{
+    font-size:10.5px;padding:2px 6px;border-radius:2px;
+    background:var(--gold-pale);color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    border-left:2px solid var(--gold-soft);
+    cursor:pointer;
+  }
+  .cal-chip.confirmado{border-left-color:var(--ok);}
+  .cal-chip.cancelado{border-left-color:var(--danger);opacity:.55;text-decoration:line-through;}
+  .cal-chip:hover{background:var(--gold-soft);}
+  .cal-more{font-size:10px;color:var(--ink-soft);padding-left:6px;}
+  @media (max-width: 880px){
+    .cal-day{min-height:74px;font-size:12px;}
+    .cal-month-label{font-size:16px;}
+  }
+
+  /* ---------- Modal de detalhes do agendamento ---------- */
+  .detalhe-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-bottom:4px;}
+  .detalhe-item .muted{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+  .detalhe-item > div:not(.muted){font-size:15px;font-weight:600;}
+  .detalhe-hr{border:none;border-top:1px solid var(--line);margin:18px 0 14px;}
+
+  .hidden{display:none !important;}
+
+  @media (max-width: 880px){
+    .shell{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:14px 16px;overflow-x:auto;}
+    .sidebar .brand-row{border:none;margin:0;padding:0 16px 0 0;}
+    .sidebar .brand-sub{display:none;}
+    nav.nav{flex-direction:row;padding:0;}
+    .sidebar-footer{display:none;}
+    main.content{padding:24px 18px 48px;}
+    .form-grid{grid-template-columns:1fr;}
+    .kpi-row{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-screen">
+  <div class="login-card">
+    <p class="brand">THE BEAUTY FRANCYELLE</p>
+    <h1 id="login-title">Entrar no painel</h1>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">E-mail</label>
+        <input type="email" id="login-email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="login-pass">Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="login-pass" required autocomplete="current-password" minlength="6">
+          <button type="button" id="toggle-pass" class="pass-toggle" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-gold btn-full" id="login-submit">Entrar</button>
+    </form>
+    <div class="login-toggle">
+      <span id="toggle-text">Ainda não tem acesso?</span>
+      <button type="button" id="toggle-mode">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <p class="brand-name">The Beauty<br>Francyelle</p>
+      <p class="brand-sub">Painel de gestão</p>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-item active" data-page="painel">Painel</div>
+      <div class="nav-item" data-page="agenda">Agenda</div>
+      <div class="nav-item" data-page="clientes">Clientes</div>
+      <div class="nav-item" data-page="estoque">Estoque</div>
+      <div class="nav-item" data-page="financeiro">Financeiro</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="user-email"></div>
+      <button class="link-btn" id="logout-btn">Sair da conta</button>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <!-- ---------- PAINEL ---------- -->
+    <section id="page-painel" class="page">
+      <div class="page-head">
+        <div>
+          <h2>Painel</h2>
+          <p>Resumo do dia — <span id="today-label"></span></p>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="label">Agendamentos hoje</div><div class="value" id="kpi-agendamentos-hoje">0</div></div>
+        <div class="kpi"><div class="label">Faturamento hoje</div><div class="value gold" id="kpi-faturamento-hoje">R$ 0,00</div></div>
+        <div class="kpi"><div class="label">Saldo em caixa</div><div class="value" id="kpi-saldo">R$ 0,00</div></div>
+        <div class="kpi"><div class="label">Produtos em estoque baixo</div><div class="value" id="kpi-estoque-baixo">0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Próximos agendamentos</h3></div>
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Status</th></tr></thead>
+            <tbody id="painel-agenda-body"></tbody>
+          </table>
+          <div class="empty hidden" id="painel-agenda-empty"><strong>Nada agendado para hoje</strong>Use a aba Agenda para marcar um horário.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Alertas de estoque</h3></div>
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Produto</th><th>Quantidade</th><th>Mínimo</th></tr></thead>
+            <tbody id="painel-estoque-body"></tbody>
+          </table>
+          <div class="empty hidden" id="painel-estoque-empty"><strong>Estoque tranquilo</strong>Nenhum produto abaixo do mínimo.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- AGENDA ---------- -->
+    <section id="page-agenda" class="page hidden">
+      <div class="page-head">
+        <div>
+          <h2>Agenda</h2>
+          <p>Horários e atendimentos marcados</p>
+        </div>
+        <button class="btn btn-gold fab-add" id="btn-novo-agendamento">+ Novo agendamento</button>
+      </div>
+
+      <div class="panel">
+        <div class="calendar-toolbar">
+          <div class="cal-nav">
+            <button type="button" id="cal-prev" aria-label="Mês anterior">‹</button>
+            <button type="button" id="cal-hoje">Hoje</button>
+            <button type="button" id="cal-next" aria-label="Próximo mês">›</button>
+          </div>
+          <div class="cal-month-label" id="cal-month-label"></div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3 id="agenda-day-title">Agendamentos</h3></div>
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+            <tbody id="agenda-body"></tbody>
+          </table>
+          <div class="empty hidden" id="agenda-empty"><strong>Nenhum agendamento nessa data</strong>Clique em "Novo agendamento" para marcar um horário.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CLIENTES ---------- -->
+    <section id="page-clientes" class="page hidden">
+      <div class="page-head">
+        <div>
+          <h2>Clientes</h2>
+          <p>Cadastro de clientes da Beauty Francyelle</p>
+        </div>
+        <button class="btn btn-gold fab-add" id="btn-novo-cliente">+ Novo cliente</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Endereço</th><th>Observações</th><th></th></tr></thead>
+            <tbody id="clientes-body"></tbody>
+          </table>
+          <div class="empty hidden" id="clientes-empty"><strong>Nenhum cliente cadastrado</strong>Clique em "Novo cliente" para começar.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ESTOQUE ---------- -->
+    <section id="page-estoque" class="page hidden">
+      <div class="page-head">
+        <div>
+          <h2>Estoque</h2>
+          <p>Produtos usados nos procedimentos</p>
+        </div>
+        <button class="btn btn-gold fab-add" id="btn-novo-produto">+ Novo produto</button>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="label">Produtos cadastrados</div><div class="value" id="estoque-total-produtos">0</div></div>
+        <div class="kpi"><div class="label">Valor total em estoque</div><div class="value gold" id="estoque-valor-total">R$ 0,00</div></div>
+        <div class="kpi"><div class="label">Abaixo do mínimo</div><div class="value" id="estoque-total-baixo">0</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Produto</th><th>Quantidade</th><th>Mínimo</th><th>Valor unit.</th><th>Valor total</th><th>Status</th><th></th></tr></thead>
+            <tbody id="estoque-body"></tbody>
+          </table>
+          <div class="empty hidden" id="estoque-empty"><strong>Nenhum produto cadastrado</strong>Clique em "Novo produto" para começar.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- FINANCEIRO ---------- -->
+    <section id="page-financeiro" class="page hidden">
+      <div class="page-head">
+        <div>
+          <h2>Financeiro</h2>
+          <p>Caixa, entradas e saídas</p>
+        </div>
+        <button class="btn btn-gold fab-add" id="btn-novo-lancamento">+ Novo lançamento</button>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="label">Entradas</div><div class="value" id="fin-entradas">R$ 0,00</div></div>
+        <div class="kpi"><div class="label">Saídas</div><div class="value" id="fin-saidas">R$ 0,00</div></div>
+        <div class="kpi"><div class="label">Saldo</div><div class="value gold" id="fin-saldo">R$ 0,00</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="toolbar">
+            <select id="fin-filtro-periodo">
+              <option value="7">Últimos 7 dias</option>
+              <option value="30" selected>Últimos 30 dias</option>
+              <option value="90">Últimos 90 dias</option>
+              <option value="all">Tudo</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead>
+            <tbody id="financeiro-body"></tbody>
+          </table>
+          <div class="empty hidden" id="financeiro-empty"><strong>Nenhum lançamento no período</strong>Clique em "Novo lançamento" para registrar uma entrada ou saída.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<!-- ============ MODAIS ============ -->
+
+<div class="modal-overlay" id="modal-agendamento">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-agendamento-title">Novo agendamento</h3></div>
+    <div class="modal-body">
+      <form id="form-agendamento">
+        <input type="hidden" id="ag-id">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="ag-cliente">Cliente</label>
+            <input list="lista-clientes" id="ag-cliente" required placeholder="Nome do cliente">
+            <datalist id="lista-clientes"></datalist>
+          </div>
+          <div class="field full">
+            <label for="ag-servico">Serviço</label>
+            <input type="text" id="ag-servico" required placeholder="Ex: Limpeza de pele">
+          </div>
+          <div class="field">
+            <label for="ag-data">Data</label>
+            <input type="date" id="ag-data" required>
+          </div>
+          <div class="field">
+            <label for="ag-hora">Horário</label>
+            <input type="time" id="ag-hora" required>
+          </div>
+          <div class="field">
+            <label for="ag-local">Local do atendimento</label>
+            <select id="ag-local">
+              <option value="salao">Salão</option>
+              <option value="domicilio">Domicílio (+ R$ 5,00)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ag-status">Status</label>
+            <select id="ag-status">
+              <option value="pendente">Pendente</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ag-valor">Valor do serviço (R$)</label>
+            <input type="number" id="ag-valor" min="0" step="0.01" placeholder="0,00">
+          </div>
+          <div class="field">
+            <label>Total a cobrar</label>
+            <div id="ag-total-preview" style="padding:11px 0;font-weight:700;font-size:16px;">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="modal-agendamento">Cancelar</button>
+          <button type="submit" class="btn btn-gold">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-detalhe-agendamento">
+  <div class="modal">
+    <div class="modal-head"><h3 id="detalhe-cliente-nome">Cliente</h3></div>
+    <div class="modal-body">
+      <div class="detalhe-grid">
+        <div class="detalhe-item"><span class="muted">Serviço</span><div id="detalhe-servico">—</div></div>
+        <div class="detalhe-item"><span class="muted">Status</span><div id="detalhe-status">—</div></div>
+        <div class="detalhe-item"><span class="muted">Data</span><div id="detalhe-data">—</div></div>
+        <div class="detalhe-item"><span class="muted">Horário</span><div id="detalhe-hora">—</div></div>
+        <div class="detalhe-item"><span class="muted">Local</span><div id="detalhe-local">—</div></div>
+        <div class="detalhe-item"><span class="muted">Valor total</span><div id="detalhe-valor">—</div></div>
+      </div>
+      <hr class="detalhe-hr">
+      <div class="detalhe-item">
+        <span class="muted">Telefone do cliente</span>
+        <div id="detalhe-telefone">—</div>
+      </div>
+      <div class="detalhe-item" id="detalhe-endereco-row" style="margin-top:12px;">
+        <span class="muted">Endereço (domicílio)</span>
+        <div id="detalhe-endereco">—</div>
+      </div>
+      <div class="detalhe-item" style="margin-top:12px;">
+        <span class="muted">Observações do cliente</span>
+        <div id="detalhe-obs">—</div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close="modal-detalhe-agendamento">Fechar</button>
+        <button type="button" class="btn btn-danger" id="detalhe-excluir-btn">Excluir</button>
+        <button type="button" class="btn btn-gold" id="detalhe-editar-btn">Editar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-cliente-title">Novo cliente</h3></div>
+    <div class="modal-body">
+      <form id="form-cliente">
+        <input type="hidden" id="cl-id">
+        <div class="field">
+          <label for="cl-nome">Nome</label>
+          <input type="text" id="cl-nome" required>
+        </div>
+        <div class="field">
+          <label for="cl-telefone">Telefone</label>
+          <input type="text" id="cl-telefone" placeholder="(00) 00000-0000">
+        </div>
+        <div class="field">
+          <label for="cl-endereco">Endereço</label>
+          <textarea id="cl-endereco" placeholder="Rua, número, bairro, cidade, ponto de referência..."></textarea>
+        </div>
+        <div class="field">
+          <label for="cl-obs">Observações</label>
+          <textarea id="cl-obs" placeholder="Preferências, alergias, histórico..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="modal-cliente">Cancelar</button>
+          <button type="submit" class="btn btn-gold">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-produto">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-produto-title">Novo produto</h3></div>
+    <div class="modal-body">
+      <form id="form-produto">
+        <input type="hidden" id="pr-id">
+        <div class="field">
+          <label for="pr-nome">Produto</label>
+          <input type="text" id="pr-nome" required>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="pr-quantidade">Quantidade atual</label>
+            <input type="number" id="pr-quantidade" min="0" step="1" required>
+          </div>
+          <div class="field">
+            <label for="pr-minimo">Quantidade mínima</label>
+            <input type="number" id="pr-minimo" min="0" step="1" required>
+          </div>
+          <div class="field full">
+            <label for="pr-valor">Valor unitário (R$)</label>
+            <input type="number" id="pr-valor" min="0" step="0.01" placeholder="0,00">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="modal-produto">Cancelar</button>
+          <button type="submit" class="btn btn-gold">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-financeiro">
+  <div class="modal">
+    <div class="modal-head"><h3>Novo lançamento</h3></div>
+    <div class="modal-body">
+      <form id="form-financeiro">
+        <div class="field">
+          <label for="fn-tipo">Tipo</label>
+          <select id="fn-tipo">
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fn-descricao">Descrição</label>
+          <input type="text" id="fn-descricao" required placeholder="Ex: Atendimento - limpeza de pele">
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="fn-categoria">Categoria</label>
+            <input type="text" id="fn-categoria" placeholder="Ex: Serviço, Produto, Aluguel">
+          </div>
+          <div class="field">
+            <label for="fn-valor">Valor (R$)</label>
+            <input type="number" id="fn-valor" min="0" step="0.01" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="fn-data">Data</label>
+          <input type="date" id="fn-data" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="modal-financeiro">Cancelar</button>
+          <button type="submit" class="btn btn-gold">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ FIREBASE ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBEzIe1fFSGwrSLpSdqPj02BxPBRpH6CnY",
+  authDomain: "the-beauty-francyelle.firebaseapp.com",
+  projectId: "the-beauty-francyelle",
+  storageBucket: "the-beauty-francyelle.firebasestorage.app",
+  messagingSenderId: "274325714327",
+  appId: "1:274325714327:web:8306b422b0e11c793480d2"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ============ HELPERS ============ */
+function brl(v){
+  return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function todayISO(){
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function fmtDateBR(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('[data-close]').forEach(btn=>{
+  btn.addEventListener('click', ()=> closeModal(btn.dataset.close));
+});
+document.querySelectorAll('.modal-overlay').forEach(ov=>{
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'); });
+});
+
+/* ============ AUTH ============ */
+let isRegisterMode = false;
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
+const toggleModeBtn = document.getElementById('toggle-mode');
+const toggleText = document.getElementById('toggle-text');
+const loginTitle = document.getElementById('login-title');
+const loginSubmit = document.getElementById('login-submit');
+
+document.getElementById('toggle-pass').addEventListener('click', ()=>{
+  const input = document.getElementById('login-pass');
+  const btn = document.getElementById('toggle-pass');
+  const mostrando = input.type === 'text';
+  input.type = mostrando ? 'password' : 'text';
+  btn.textContent = mostrando ? 'Mostrar' : 'Ocultar';
+  btn.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+});
+
+toggleModeBtn.addEventListener('click', ()=>{
+  isRegisterMode = !isRegisterMode;
+  loginError.style.display='none';
+  if(isRegisterMode){
+    loginTitle.textContent = 'Criar conta';
+    loginSubmit.textContent = 'Criar conta';
+    toggleText.textContent = 'Já tem uma conta?';
+    toggleModeBtn.textContent = 'Entrar';
+  } else {
+    loginTitle.textContent = 'Entrar no painel';
+    loginSubmit.textContent = 'Entrar';
+    toggleText.textContent = 'Ainda não tem acesso?';
+    toggleModeBtn.textContent = 'Criar conta';
+  }
+});
+
+function traduzErroAuth(code){
+  const map = {
+    'auth/invalid-email':'E-mail inválido.',
+    'auth/user-not-found':'Usuário não encontrado.',
+    'auth/wrong-password':'Senha incorreta.',
+    'auth/invalid-credential':'E-mail ou senha incorretos.',
+    'auth/email-already-in-use':'Já existe uma conta com esse e-mail.',
+    'auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.',
+  };
+  return map[code] || 'Não foi possível concluir. Tente novamente.';
+}
+
+loginForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  loginError.style.display='none';
+  loginSubmit.disabled = true;
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  try{
+    if(isRegisterMode){
+      await auth.createUserWithEmailAndPassword(email, pass);
+    } else {
+      await auth.signInWithEmailAndPassword(email, pass);
+    }
+  }catch(err){
+    loginError.textContent = traduzErroAuth(err.code);
+    loginError.style.display='block';
+  }
+  loginSubmit.disabled = false;
+});
+
+document.getElementById('logout-btn').addEventListener('click', ()=> auth.signOut());
+
+let unsubscribers = [];
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('user-email').textContent = user.email;
+    startListeners();
+  } else {
+    document.getElementById('app').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+    unsubscribers.forEach(u=>u());
+    unsubscribers = [];
+  }
+});
+
+/* ============ NAVEGAÇÃO ============ */
+document.getElementById('nav').addEventListener('click', (e)=>{
+  const item = e.target.closest('.nav-item');
+  if(!item) return;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  item.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('page-'+item.dataset.page).classList.remove('hidden');
+});
+
+document.getElementById('today-label').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long'});
+
+/* ============ DADOS EM MEMÓRIA (via onSnapshot) ============ */
+let CLIENTES = [];
+let AGENDAMENTOS = [];
+let PRODUTOS = [];
+let FINANCEIRO = [];
+
+function startListeners(){
+  const uCol = (name)=> db.collection(name);
+
+  unsubscribers.push(uCol('clientes').orderBy('nome').onSnapshot(snap=>{
+    CLIENTES = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderClientes();
+    renderDatalistClientes();
+  }, err=>console.error('clientes', err)));
+
+  unsubscribers.push(uCol('agendamentos').orderBy('data').onSnapshot(snap=>{
+    AGENDAMENTOS = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCalendar();
+    renderDiaPanel();
+    renderPainel();
+  }, err=>{ console.error('agendamentos', err); alert('Erro ao carregar a agenda: ' + err.message); }));
+
+  unsubscribers.push(uCol('produtos').orderBy('nome').onSnapshot(snap=>{
+    PRODUTOS = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderEstoque();
+    renderPainel();
+  }, err=>console.error('produtos', err)));
+
+  unsubscribers.push(uCol('financeiro').orderBy('data','desc').onSnapshot(snap=>{
+    FINANCEIRO = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderFinanceiro();
+    renderPainel();
+  }, err=>console.error('financeiro', err)));
+}
+
+/* ============ CLIENTES ============ */
+document.getElementById('btn-novo-cliente').addEventListener('click', ()=>{
+  document.getElementById('form-cliente').reset();
+  document.getElementById('cl-id').value='';
+  document.getElementById('modal-cliente-title').textContent = 'Novo cliente';
+  openModal('modal-cliente');
+});
+
+document.getElementById('form-cliente').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('cl-id').value;
+  const data = {
+    nome: document.getElementById('cl-nome').value.trim(),
+    telefone: document.getElementById('cl-telefone').value.trim(),
+    endereco: document.getElementById('cl-endereco').value.trim(),
+    observacoes: document.getElementById('cl-obs').value.trim(),
+  };
+  try{
+    if(id){
+      await db.collection('clientes').doc(id).update(data);
+    } else {
+      data.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('clientes').add(data);
+    }
+    closeModal('modal-cliente');
+  }catch(err){
+    alert('Não foi possível salvar o cliente: ' + err.message);
+  }
+});
+
+function renderDatalistClientes(){
+  const dl = document.getElementById('lista-clientes');
+  dl.innerHTML = CLIENTES.map(c=>`<option value="${escapeHtml(c.nome)}">`).join('');
+}
+
+function renderClientes(){
+  const body = document.getElementById('clientes-body');
+  const empty = document.getElementById('clientes-empty');
+  if(CLIENTES.length===0){ body.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  body.innerHTML = CLIENTES.map(c=>`
+    <tr>
+      <td>${escapeHtml(c.nome)}</td>
+      <td>${escapeHtml(c.telefone)||'—'}</td>
+      <td>${escapeHtml(c.endereco)||'—'}</td>
+      <td>${escapeHtml(c.observacoes)||'—'}</td>
+      <td class="row-actions">
+        <button onclick="editarCliente('${c.id}')">Editar</button>
+        <button class="danger" onclick="excluirCliente('${c.id}')">Excluir</button>
+      </td>
+    </tr>
+  `).join('');
+}
+function editarCliente(id){
+  const c = CLIENTES.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('cl-id').value = c.id;
+  document.getElementById('cl-nome').value = c.nome||'';
+  document.getElementById('cl-telefone').value = c.telefone||'';
+  document.getElementById('cl-endereco').value = c.endereco||'';
+  document.getElementById('cl-obs').value = c.observacoes||'';
+  document.getElementById('modal-cliente-title').textContent = 'Editar cliente';
+  openModal('modal-cliente');
+}
+async function excluirCliente(id){
+  if(!confirm('Excluir este cliente?')) return;
+  await db.collection('clientes').doc(id).delete();
+}
+
+/* ============ AGENDA (calendário) ============ */
+let calendarViewDate = new Date();
+let selectedDate = todayISO();
+let detalheAgendamentoId = null;
+
+function toISO(d){
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function fmtDateBRLong(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long'});
+}
+
+document.getElementById('cal-prev').addEventListener('click', ()=>{
+  calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth()-1, 1);
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', ()=>{
+  calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth()+1, 1);
+  renderCalendar();
+});
+document.getElementById('cal-hoje').addEventListener('click', ()=>{
+  calendarViewDate = new Date();
+  selectedDate = todayISO();
+  renderCalendar();
+  renderDiaPanel();
+});
+
+function selecionarDia(iso){
+  selectedDate = iso;
+  renderCalendar();
+  renderDiaPanel();
+}
+
+function renderCalendar(){
+  const grid = document.getElementById('calendar-grid');
+  const year = calendarViewDate.getFullYear();
+  const month = calendarViewDate.getMonth();
+  document.getElementById('cal-month-label').textContent = calendarViewDate.toLocaleDateString('pt-BR',{month:'long', year:'numeric'});
+
+  const weekdays = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html = weekdays.map(w=>`<div class="cal-weekday">${w}</div>`).join('');
+
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const totalCells = Math.ceil((startOffset+daysInMonth)/7)*7;
+  const todayStr = todayISO();
+
+  for(let i=0;i<totalCells;i++){
+    const dayNum = i - startOffset + 1;
+    let cellDate, outside=false;
+    if(dayNum<1){ cellDate = new Date(year, month-1, daysInPrevMonth+dayNum); outside=true; }
+    else if(dayNum>daysInMonth){ cellDate = new Date(year, month+1, dayNum-daysInMonth); outside=true; }
+    else { cellDate = new Date(year, month, dayNum); }
+
+    const iso = toISO(cellDate);
+    const dayAppointments = AGENDAMENTOS.filter(a=>a.data===iso).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    const isToday = iso===todayStr;
+    const isSelected = iso===selectedDate;
+
+    let chipsHtml = dayAppointments.slice(0,3).map(a=>`<div class="cal-chip ${a.status}" onclick="event.stopPropagation();abrirDetalheAgendamento('${a.id}')">${escapeHtml(a.hora)} ${escapeHtml(a.cliente)}</div>`).join('');
+    if(dayAppointments.length>3){
+      chipsHtml += `<div class="cal-more">+${dayAppointments.length-3} mais</div>`;
+    }
+    html += `<div class="cal-day ${outside?'outside':''} ${isToday?'today':''} ${isSelected?'selected':''}" onclick="selecionarDia('${iso}')">
+      <div class="cal-day-num">${cellDate.getDate()}</div>
+      ${chipsHtml}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+document.getElementById('btn-novo-agendamento').addEventListener('click', ()=>{
+  document.getElementById('form-agendamento').reset();
+  document.getElementById('ag-id').value='';
+  document.getElementById('ag-data').value = selectedDate || todayISO();
+  document.getElementById('modal-agendamento-title').textContent = 'Novo agendamento';
+  atualizarPreviewTotal();
+  openModal('modal-agendamento');
+});
+
+const TAXA_DOMICILIO = 5;
+function calcularTotalAgendamento(){
+  const valor = Number(document.getElementById('ag-valor').value)||0;
+  const local = document.getElementById('ag-local').value;
+  const taxa = local==='domicilio' ? TAXA_DOMICILIO : 0;
+  return { valor, local, taxa, total: valor+taxa };
+}
+function atualizarPreviewTotal(){
+  const {total} = calcularTotalAgendamento();
+  document.getElementById('ag-total-preview').textContent = brl(total);
+}
+document.getElementById('ag-valor').addEventListener('input', atualizarPreviewTotal);
+document.getElementById('ag-local').addEventListener('change', atualizarPreviewTotal);
+
+document.getElementById('form-agendamento').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('ag-id').value;
+  const {valor, local, taxa, total} = calcularTotalAgendamento();
+  const data = {
+    cliente: document.getElementById('ag-cliente').value.trim(),
+    servico: document.getElementById('ag-servico').value.trim(),
+    data: document.getElementById('ag-data').value,
+    hora: document.getElementById('ag-hora').value,
+    local: local,
+    valor: valor,
+    taxaDomicilio: taxa,
+    valorTotal: total,
+    status: document.getElementById('ag-status').value,
+  };
+  try{
+    if(id){
+      await db.collection('agendamentos').doc(id).update(data);
+    } else {
+      data.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('agendamentos').add(data);
+    }
+    closeModal('modal-agendamento');
+  }catch(err){
+    alert('Não foi possível salvar o agendamento: ' + err.message);
+  }
+});
+
+function renderDiaPanel(){
+  const titulo = document.getElementById('agenda-day-title');
+  titulo.textContent = selectedDate===todayISO() ? 'Agendamentos de hoje' : 'Agendamentos — ' + fmtDateBRLong(selectedDate);
+  const lista = AGENDAMENTOS.filter(a=> a.data === selectedDate)
+    .sort((a,b)=> (a.hora||'').localeCompare(b.hora||''));
+  const body = document.getElementById('agenda-body');
+  const empty = document.getElementById('agenda-empty');
+  if(lista.length===0){ body.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  body.innerHTML = lista.map(a=>{
+    const total = (a.valorTotal!=null) ? a.valorTotal : a.valor;
+    return `
+    <tr style="cursor:pointer" onclick="abrirDetalheAgendamento('${a.id}')">
+      <td>${escapeHtml(a.hora)}</td>
+      <td>${escapeHtml(a.cliente)}</td>
+      <td>${escapeHtml(a.servico)}${a.local==='domicilio' ? ' <span class="muted">(domicílio)</span>' : ''}</td>
+      <td>${brl(total)}</td>
+      <td><span class="badge ${a.status}">${labelStatus(a.status)}</span></td>
+      <td class="row-actions" onclick="event.stopPropagation()">
+        <button onclick="editarAgendamento('${a.id}')">Editar</button>
+        <button class="danger" onclick="excluirAgendamento('${a.id}')">Excluir</button>
+      </td>
+    </tr>
+  `;}).join('');
+}
+
+function labelStatus(s){
+  return {pendente:'Pendente', confirmado:'Confirmado', cancelado:'Cancelado'}[s] || s;
+}
+
+/* ---- Modal de detalhes (clicar num agendamento/cliente na agenda) ---- */
+function abrirDetalheAgendamento(id){
+  const a = AGENDAMENTOS.find(x=>x.id===id);
+  if(!a) return;
+  detalheAgendamentoId = id;
+  document.getElementById('detalhe-cliente-nome').textContent = a.cliente || 'Cliente';
+  document.getElementById('detalhe-servico').textContent = a.servico || '—';
+  document.getElementById('detalhe-data').textContent = fmtDateBR(a.data);
+  document.getElementById('detalhe-hora').textContent = a.hora || '—';
+  document.getElementById('detalhe-local').textContent = a.local==='domicilio' ? 'Domicílio' : 'Salão';
+  const total = (a.valorTotal!=null) ? a.valorTotal : a.valor;
+  const valorHtml = (a.local==='domicilio')
+    ? `${brl(total)} <span class="muted" style="text-transform:none;font-weight:400;">(serviço ${brl(a.valor)} + taxa ${brl(a.taxaDomicilio||TAXA_DOMICILIO)})</span>`
+    : brl(total);
+  document.getElementById('detalhe-valor').innerHTML = valorHtml;
+  document.getElementById('detalhe-status').innerHTML = `<span class="badge ${a.status}">${labelStatus(a.status)}</span>`;
+
+  const cliente = CLIENTES.find(c => (c.nome||'').trim().toLowerCase() === (a.cliente||'').trim().toLowerCase());
+  document.getElementById('detalhe-telefone').textContent = (cliente && cliente.telefone) ? cliente.telefone : 'Não cadastrado';
+  document.getElementById('detalhe-obs').textContent = (cliente && cliente.observacoes) ? cliente.observacoes : '—';
+  document.getElementById('detalhe-endereco').textContent = (cliente && cliente.endereco) ? cliente.endereco : 'Não cadastrado';
+  document.getElementById('detalhe-endereco-row').style.display = (a.local==='domicilio') ? '' : 'none';
+
+  openModal('modal-detalhe-agendamento');
+}
+document.getElementById('detalhe-editar-btn').addEventListener('click', ()=>{
+  closeModal('modal-detalhe-agendamento');
+  editarAgendamento(detalheAgendamentoId);
+});
+document.getElementById('detalhe-excluir-btn').addEventListener('click', async ()=>{
+  if(!detalheAgendamentoId) return;
+  if(!confirm('Excluir este agendamento?')) return;
+  try{
+    await db.collection('agendamentos').doc(detalheAgendamentoId).delete();
+    closeModal('modal-detalhe-agendamento');
+  }catch(err){
+    alert('Não foi possível excluir: ' + err.message);
+  }
+});
+
+function editarAgendamento(id){
+  const a = AGENDAMENTOS.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('ag-id').value = a.id;
+  document.getElementById('ag-cliente').value = a.cliente||'';
+  document.getElementById('ag-servico').value = a.servico||'';
+  document.getElementById('ag-data').value = a.data||'';
+  document.getElementById('ag-hora').value = a.hora||'';
+  document.getElementById('ag-local').value = a.local||'salao';
+  document.getElementById('ag-valor').value = a.valor||'';
+  document.getElementById('ag-status').value = a.status||'pendente';
+  atualizarPreviewTotal();
+  document.getElementById('modal-agendamento-title').textContent = 'Editar agendamento';
+  openModal('modal-agendamento');
+}
+async function excluirAgendamento(id){
+  if(!confirm('Excluir este agendamento?')) return;
+  await db.collection('agendamentos').doc(id).delete();
+}
+
+/* ============ ESTOQUE ============ */
+document.getElementById('btn-novo-produto').addEventListener('click', ()=>{
+  document.getElementById('form-produto').reset();
+  document.getElementById('pr-id').value='';
+  document.getElementById('modal-produto-title').textContent = 'Novo produto';
+  openModal('modal-produto');
+});
+
+document.getElementById('form-produto').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('pr-id').value;
+  const data = {
+    nome: document.getElementById('pr-nome').value.trim(),
+    quantidade: Number(document.getElementById('pr-quantidade').value)||0,
+    minimo: Number(document.getElementById('pr-minimo').value)||0,
+    valorUnitario: Number(document.getElementById('pr-valor').value)||0,
+  };
+  try{
+    if(id){
+      await db.collection('produtos').doc(id).update(data);
+    } else {
+      data.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('produtos').add(data);
+    }
+    closeModal('modal-produto');
+  }catch(err){
+    alert('Não foi possível salvar o produto: ' + err.message);
+  }
+});
+
+function renderEstoque(){
+  const body = document.getElementById('estoque-body');
+  const empty = document.getElementById('estoque-empty');
+
+  document.getElementById('estoque-total-produtos').textContent = PRODUTOS.length;
+  const valorTotal = PRODUTOS.reduce((s,p)=> s + (Number(p.quantidade)||0)*(Number(p.valorUnitario)||0), 0);
+  document.getElementById('estoque-valor-total').textContent = brl(valorTotal);
+  const totalBaixo = PRODUTOS.filter(p=> Number(p.quantidade) <= Number(p.minimo)).length;
+  document.getElementById('estoque-total-baixo').textContent = totalBaixo;
+
+  if(PRODUTOS.length===0){ body.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  body.innerHTML = PRODUTOS.map(p=>{
+    const baixo = Number(p.quantidade) <= Number(p.minimo);
+    return `
+    <tr>
+      <td>${escapeHtml(p.nome)}</td>
+      <td>${p.quantidade}</td>
+      <td>${p.minimo}</td>
+      <td>${brl(p.valorUnitario)}</td>
+      <td>${brl((Number(p.quantidade)||0)*(Number(p.valorUnitario)||0))}</td>
+      <td><span class="badge ${baixo?'baixo':'ok-estoque'}">${baixo?'Repor':'Ok'}</span></td>
+      <td class="row-actions">
+        <button onclick="editarProduto('${p.id}')">Editar</button>
+        <button class="danger" onclick="excluirProduto('${p.id}')">Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function editarProduto(id){
+  const p = PRODUTOS.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('pr-id').value = p.id;
+  document.getElementById('pr-nome').value = p.nome||'';
+  document.getElementById('pr-quantidade').value = p.quantidade||0;
+  document.getElementById('pr-minimo').value = p.minimo||0;
+  document.getElementById('pr-valor').value = p.valorUnitario||'';
+  document.getElementById('modal-produto-title').textContent = 'Editar produto';
+  openModal('modal-produto');
+}
+async function excluirProduto(id){
+  if(!confirm('Excluir este produto?')) return;
+  await db.collection('produtos').doc(id).delete();
+}
+
+/* ============ FINANCEIRO ============ */
+document.getElementById('btn-novo-lancamento').addEventListener('click', ()=>{
+  document.getElementById('form-financeiro').reset();
+  document.getElementById('fn-data').value = todayISO();
+  openModal('modal-financeiro');
+});
+
+document.getElementById('form-financeiro').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const data = {
+    tipo: document.getElementById('fn-tipo').value,
+    descricao: document.getElementById('fn-descricao').value.trim(),
+    categoria: document.getElementById('fn-categoria').value.trim(),
+    valor: Number(document.getElementById('fn-valor').value)||0,
+    data: document.getElementById('fn-data').value,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  try{
+    await db.collection('financeiro').add(data);
+    closeModal('modal-financeiro');
+  }catch(err){
+    alert('Não foi possível salvar o lançamento: ' + err.message);
+  }
+});
+
+document.getElementById('fin-filtro-periodo').addEventListener('change', renderFinanceiro);
+
+function renderFinanceiro(){
+  const periodo = document.getElementById('fin-filtro-periodo').value;
+  let lista = FINANCEIRO;
+  if(periodo !== 'all'){
+    const dias = Number(periodo);
+    const limite = new Date();
+    limite.setDate(limite.getDate()-dias);
+    const limiteISO = limite.toISOString().slice(0,10);
+    lista = FINANCEIRO.filter(f=> f.data >= limiteISO);
+  }
+  const body = document.getElementById('financeiro-body');
+  const empty = document.getElementById('financeiro-empty');
+
+  let entradas=0, saidas=0;
+  lista.forEach(f=> f.tipo==='entrada' ? entradas+=Number(f.valor)||0 : saidas+=Number(f.valor)||0);
+  document.getElementById('fin-entradas').textContent = brl(entradas);
+  document.getElementById('fin-saidas').textContent = brl(saidas);
+  document.getElementById('fin-saldo').textContent = brl(entradas-saidas);
+
+  if(lista.length===0){ body.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  body.innerHTML = lista.map(f=>`
+    <tr>
+      <td>${fmtDateBR(f.data)}</td>
+      <td>${escapeHtml(f.descricao)}</td>
+      <td>${escapeHtml(f.categoria)||'—'}</td>
+      <td><span class="badge ${f.tipo}">${f.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+      <td>${brl(f.valor)}</td>
+      <td class="row-actions">
+        <button class="danger" onclick="excluirFinanceiro('${f.id}')">Excluir</button>
+      </td>
+    </tr>
+  `).join('');
+}
+async function excluirFinanceiro(id){
+  if(!confirm('Excluir este lançamento?')) return;
+  await db.collection('financeiro').doc(id).delete();
+}
+
+/* ============ PAINEL (DASHBOARD) ============ */
+function renderPainel(){
+  const hoje = todayISO();
+
+  const agHoje = AGENDAMENTOS.filter(a=>a.data===hoje);
+  document.getElementById('kpi-agendamentos-hoje').textContent = agHoje.length;
+
+  const finHoje = FINANCEIRO.filter(f=>f.data===hoje && f.tipo==='entrada');
+  const totalHoje = finHoje.reduce((s,f)=>s+(Number(f.valor)||0),0);
+  document.getElementById('kpi-faturamento-hoje').textContent = brl(totalHoje);
+
+  let saldo = 0;
+  FINANCEIRO.forEach(f=> f.tipo==='entrada' ? saldo+=Number(f.valor)||0 : saldo-=Number(f.valor)||0);
+  document.getElementById('kpi-saldo').textContent = brl(saldo);
+
+  const baixos = PRODUTOS.filter(p=> Number(p.quantidade) <= Number(p.minimo));
+  document.getElementById('kpi-estoque-baixo').textContent = baixos.length;
+
+  const agBody = document.getElementById('painel-agenda-body');
+  const agEmpty = document.getElementById('painel-agenda-empty');
+  const agOrdenado = [...agHoje].sort((a,b)=> (a.hora||'').localeCompare(b.hora||''));
+  if(agOrdenado.length===0){ agBody.innerHTML=''; agEmpty.classList.remove('hidden'); }
+  else{
+    agEmpty.classList.add('hidden');
+    agBody.innerHTML = agOrdenado.slice(0,8).map(a=>`
+      <tr>
+        <td>${escapeHtml(a.hora)}</td>
+        <td>${escapeHtml(a.cliente)}</td>
+        <td>${escapeHtml(a.servico)}</td>
+        <td><span class="badge ${a.status}">${labelStatus(a.status)}</span></td>
+      </tr>`).join('');
+  }
+
+  const esBody = document.getElementById('painel-estoque-body');
+  const esEmpty = document.getElementById('painel-estoque-empty');
+  if(baixos.length===0){ esBody.innerHTML=''; esEmpty.classList.remove('hidden'); }
+  else{
+    esEmpty.classList.add('hidden');
+    esBody.innerHTML = baixos.slice(0,8).map(p=>`
+      <tr><td>${escapeHtml(p.nome)}</td><td>${p.quantidade}</td><td>${p.minimo}</td></tr>`).join('');
+  }
+}
+
+renderCalendar();
+</script>
+</body>
+</html>
