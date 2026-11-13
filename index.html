@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Beauty Francyelle — Painel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,7 +223,8 @@
   tbody td{padding:13px 20px;border-bottom:1px solid var(--line);vertical-align:middle;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--paper-warm);}
-  .row-actions{display:flex;gap:14px;}
+  .row-actions{white-space:nowrap;}
+  .row-actions button + button{margin-left:14px;}
   .row-actions button{background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-soft);text-decoration:underline;padding:0;}
   .row-actions button:hover{color:var(--gold);}
   .row-actions button.danger:hover{color:var(--danger);}
@@ -283,7 +284,7 @@
   #cal-prev, #cal-next{width:32px;height:32px;font-size:16px;line-height:1;}
   #cal-hoje{padding:0 14px;height:32px;font-size:12.5px;font-weight:700;}
   .cal-month-label{font-family:var(--font-display);font-size:20px;font-weight:500;text-transform:capitalize;}
-  .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));}
   .cal-weekday{padding:10px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);text-align:center;border-bottom:1px solid var(--line);font-weight:700;}
   .cal-day{
     min-height:98px;
@@ -334,6 +335,76 @@
     .form-grid{grid-template-columns:1fr;}
     .kpi-row{grid-template-columns:1fr 1fr;}
   }
+
+  .hor-row{display:grid;grid-template-columns:190px 1fr 1fr;gap:14px;align-items:center;padding:14px 22px;border-bottom:1px solid var(--line);}
+  .hor-row:last-child{border-bottom:none;}
+  .hor-dia{display:flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;}
+  .hor-dia input{width:18px;height:18px;accent-color:var(--gold);}
+  .hor-times{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;}
+  .hor-times input{padding:9px 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-warm);color:var(--ink);}
+  .hor-row.off .hor-times{opacity:.4;}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .slot{padding:7px 11px;border:1px solid var(--line);background:var(--paper-warm);color:var(--ink);border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:600;}
+  .slot:hover{border-color:var(--gold-soft);}
+  .slot.sel{background:var(--gold-soft);border-color:var(--gold-soft);color:#0B0B0B;}
+  .slot.busy{opacity:.35;text-decoration:line-through;cursor:not-allowed;}
+  .slot.blocked{background:#FBEAEA;border-color:#E9C6C6;color:var(--danger);text-decoration:line-through;}
+  .cal-day.closed:not(.selected){background:var(--paper-warm);}
+  .cal-day.closed .cal-day-num{opacity:.4;}
+  @media (max-width: 880px){ .hor-row{grid-template-columns:1fr;gap:10px;padding:14px;} }
+
+  /* ---------- Ajustes para celular ---------- */
+  @media (max-width: 880px){
+    input,select,textarea{font-size:16px;}
+    body{min-height:100dvh;}
+    #login-screen{min-height:100dvh;}
+    .login-card{padding:32px 22px 28px;}
+
+    .sidebar{position:sticky;top:0;z-index:20;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 12px;gap:4px;}
+    .sidebar .brand-row{flex-shrink:0;}
+    .sidebar .brand-name{font-size:15px;white-space:nowrap;}
+    .nav-item{white-space:nowrap;flex-shrink:0;padding:10px 14px;}
+    .sidebar-footer{display:flex;flex-shrink:0;border:none;margin:0;padding:0 0 0 10px;}
+    .sidebar-user{display:none;}
+    .link-btn{white-space:nowrap;padding:10px 6px;}
+
+    main.content{padding:20px 14px calc(40px + env(safe-area-inset-bottom,0px));}
+    .page-head h2{font-size:26px;}
+    .page-head .btn{width:100%;}
+
+    .kpi{padding:16px;}
+    .kpi .value{font-size:22px;}
+    .kpi-row .kpi:last-child:nth-child(odd){grid-column:1/-1;}
+
+    .panel-body.no-pad{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table{min-width:560px;}
+    #page-clientes table, #page-estoque table{min-width:680px;}
+    thead th{padding:10px 12px;}
+    tbody td{padding:11px 12px;}
+    .row-actions button{padding:6px 0;}
+
+    .calendar-toolbar{padding:14px;}
+    #cal-prev,#cal-next{width:40px;height:40px;}
+    #cal-hoje{height:40px;}
+    .cal-weekday{padding:8px 0;font-size:10px;letter-spacing:0;}
+    .cal-day{min-height:58px;padding:4px 2px;align-items:center;gap:3px;}
+    .cal-day-num{font-size:12px;}
+    .cal-chip{font-size:0;width:6px;height:6px;min-height:6px;padding:0;border:none;border-radius:50%;background:var(--gold-soft);pointer-events:none;flex-shrink:0;}
+    .cal-chip.confirmado{background:var(--ok);}
+    .cal-chip.cancelado{background:var(--danger);}
+    .cal-more{font-size:9px;padding:0;}
+
+    .modal-overlay{padding:12px;align-items:flex-end;}
+    .modal{max-height:92vh;max-height:92dvh;}
+    .modal-head{padding:20px 18px 0;}
+    .modal-body{padding:0 18px 20px;}
+    .modal-actions{flex-wrap:wrap;}
+    .modal-actions .btn{flex:1 1 auto;}
+  }
+  @media (hover:none){
+    tbody tr:hover{background:none;}
+    .cal-day:hover:not(.selected){background:none;}
+  }
 </style>
 </head>
 <body>
@@ -376,6 +447,7 @@
     <nav class="nav" id="nav">
       <div class="nav-item active" data-page="painel">Painel</div>
       <div class="nav-item" data-page="agenda">Agenda</div>
+      <div class="nav-item" data-page="horarios">Horários</div>
       <div class="nav-item" data-page="clientes">Clientes</div>
       <div class="nav-item" data-page="estoque">Estoque</div>
       <div class="nav-item" data-page="financeiro">Financeiro</div>
@@ -540,6 +612,55 @@
       </div>
     </section>
 
+      <!-- ---------- HORÁRIOS ---------- -->
+    <section id="page-horarios" class="page hidden">
+      <div class="page-head">
+        <div>
+          <h2>Definir Horários</h2>
+          <p>Dias e horários em que você atende</p>
+        </div>
+        <button class="btn btn-gold fab-add" id="btn-salvar-horarios" type="button">Salvar semana</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Padrão da semana</h3>
+          <div class="toolbar">
+            <label class="muted" for="hor-duracao">Duração de cada atendimento</label>
+            <select id="hor-duracao">
+              <option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option>
+              <option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option>
+            </select>
+            <button class="btn btn-ghost" id="btn-copiar-horario" type="button">Copiar 1º dia ativo para os demais</button>
+          </div>
+        </div>
+        <div class="panel-body no-pad" id="horarios-lista"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Disponibilidade por dia</h3>
+          <div class="toolbar">
+            <input type="date" id="bl-data">
+            <button class="btn btn-ghost" id="bl-dia-todo" type="button">Marcar dia todo indisponível</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <p class="muted" id="bl-info"></p>
+          <div class="slots" id="bl-slots"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Dias com restrição</h3></div>
+        <div class="panel-body no-pad">
+          <table>
+            <thead><tr><th>Data</th><th>Indisponível</th><th></th></tr></thead>
+            <tbody id="bl-lista"></tbody>
+          </table>
+          <div class="empty hidden" id="bl-empty"><strong>Nenhuma restrição</strong>Escolha uma data acima e toque nos horários que você não pode atender.</div>
+        </div>
+      </div>
+      <p class="muted" id="horarios-status"></p>
+    </section>
+
   </main>
 </div>
 </div>
@@ -569,6 +690,10 @@
           <div class="field">
             <label for="ag-hora">Horário</label>
             <input type="time" id="ag-hora" required>
+          </div>
+          <div class="field full">
+            <div id="ag-aviso" class="muted"></div>
+            <div id="ag-slots" class="slots"></div>
           </div>
           <div class="field">
             <label for="ag-local">Local do atendimento</label>
@@ -771,7 +896,7 @@ function fmtDateBR(iso){
 function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function openModal(id){ document.getElementById(id).classList.add('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); if(id==='modal-agendamento') atualizarSlotsAgendamento(); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('[data-close]').forEach(btn=>{
   btn.addEventListener('click', ()=> closeModal(btn.dataset.close));
@@ -907,6 +1032,24 @@ function startListeners(){
     renderFinanceiro();
     renderPainel();
   }, err=>console.error('financeiro', err)));
+
+  unsubscribers.push(uCol('config').doc('horarios').onSnapshot(doc=>{
+    const base = horariosPadrao();
+    if(doc.exists){
+      const d = doc.data();
+      HORARIOS = { duracao: Number(d.duracao)||60, dias: {...base.dias, ...(d.dias||{})} };
+    } else { HORARIOS = base; }
+    renderHorarios();
+    renderCalendar();
+    atualizarSlotsAgendamento();
+  }, err=>console.error('horarios', err)));
+
+  unsubscribers.push(uCol('config').doc('bloqueios').onSnapshot(doc=>{
+    BLOQUEIOS = doc.exists ? (doc.data().dias || {}) : {};
+    renderBloqueios();
+    renderCalendar();
+    atualizarSlotsAgendamento();
+  }, err=>console.error('bloqueios', err)));
 }
 
 /* ============ CLIENTES ============ */
@@ -1046,7 +1189,7 @@ function renderCalendar(){
     if(dayAppointments.length>3){
       chipsHtml += `<div class="cal-more">+${dayAppointments.length-3} mais</div>`;
     }
-    html += `<div class="cal-day ${outside?'outside':''} ${isToday?'today':''} ${isSelected?'selected':''}" onclick="selecionarDia('${iso}')">
+    html += `<div class="cal-day ${outside?'outside':''} ${((HORARIOS.dias[cellDate.getDay()]||{}).ativo && !(BLOQUEIOS[iso]&&BLOQUEIOS[iso].diaTodo))?'':'closed'} ${isToday?'today':''} ${isSelected?'selected':''}" onclick="selecionarDia('${iso}')">
       <div class="cal-day-num">${cellDate.getDate()}</div>
       ${chipsHtml}
     </div>`;
@@ -1092,6 +1235,8 @@ document.getElementById('form-agendamento').addEventListener('submit', async (e)
     valorTotal: total,
     status: document.getElementById('ag-status').value,
   };
+  const aviso = foraDoExpediente(data.data, data.hora);
+  if(aviso && !confirm(aviso + '\nSalvar mesmo assim?')) return;
   try{
     if(id){
       await db.collection('agendamentos').doc(id).update(data);
@@ -1379,6 +1524,226 @@ function renderPainel(){
   }
 }
 
+/* ============ HORÁRIOS DE ATENDIMENTO ============ */
+const DIAS_NOME = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const ORDEM_DIAS = [1,2,3,4,5,6,0];
+function horariosPadrao(){
+  const dias = {};
+  for(let i=0;i<7;i++) dias[i] = {ativo:i!==0, ini:'09:00', fim:'18:00', pi:'12:00', pf:'13:00'};
+  return {duracao:60, dias};
+}
+let HORARIOS = horariosPadrao();
+
+function horaMin(h){ const [a,b] = h.split(':').map(Number); return a*60+b; }
+function minHora(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function diaDaData(iso){ const [y,m,d] = iso.split('-').map(Number); return new Date(y,m-1,d).getDay(); }
+
+function renderHorarios(){
+  document.getElementById('hor-duracao').value = String(HORARIOS.duracao);
+  document.getElementById('horarios-lista').innerHTML = ORDEM_DIAS.map(d=>{
+    const c = HORARIOS.dias[d];
+    return `<div class="hor-row ${c.ativo?'':'off'}" data-dia="${d}">
+      <label class="hor-dia"><input type="checkbox" class="hor-ativo" ${c.ativo?'checked':''}> ${DIAS_NOME[d]}</label>
+      <div class="hor-times">Atende <input type="time" class="hor-ini" value="${c.ini||''}"> às <input type="time" class="hor-fim" value="${c.fim||''}"></div>
+      <div class="hor-times">Pausa <input type="time" class="hor-pi" value="${c.pi||''}"> às <input type="time" class="hor-pf" value="${c.pf||''}"></div>
+    </div>`;
+  }).join('');
+}
+function lerFormHorarios(){
+  const dias = {};
+  document.querySelectorAll('#horarios-lista .hor-row').forEach(r=>{
+    dias[r.dataset.dia] = {
+      ativo: r.querySelector('.hor-ativo').checked,
+      ini: r.querySelector('.hor-ini').value,
+      fim: r.querySelector('.hor-fim').value,
+      pi: r.querySelector('.hor-pi').value,
+      pf: r.querySelector('.hor-pf').value,
+    };
+  });
+  return {duracao: Number(document.getElementById('hor-duracao').value)||60, dias};
+}
+document.getElementById('horarios-lista').addEventListener('change', e=>{
+  if(e.target.classList.contains('hor-ativo')) e.target.closest('.hor-row').classList.toggle('off', !e.target.checked);
+});
+document.getElementById('btn-copiar-horario').addEventListener('click', ()=>{
+  const rows = [...document.querySelectorAll('#horarios-lista .hor-row')];
+  const base = rows.find(r=>r.querySelector('.hor-ativo').checked);
+  if(!base){ alert('Marque pelo menos um dia de atendimento.'); return; }
+  rows.forEach(r=>{
+    if(!r.querySelector('.hor-ativo').checked) return;
+    ['ini','fim','pi','pf'].forEach(k=> r.querySelector('.hor-'+k).value = base.querySelector('.hor-'+k).value);
+  });
+});
+document.getElementById('btn-salvar-horarios').addEventListener('click', async ()=>{
+  const cfg = lerFormHorarios();
+  for(const d of ORDEM_DIAS){
+    const c = cfg.dias[d];
+    if(!c.ativo) continue;
+    const nome = DIAS_NOME[d];
+    if(!c.ini || !c.fim || horaMin(c.ini) >= horaMin(c.fim)){ alert(nome+': o horário de início deve ser antes do fim.'); return; }
+    if(c.pi || c.pf){
+      if(!c.pi || !c.pf || horaMin(c.pi) >= horaMin(c.pf) || horaMin(c.pi) < horaMin(c.ini) || horaMin(c.pf) > horaMin(c.fim)){
+        alert(nome+': a pausa precisa ter início e fim, dentro do horário de atendimento.'); return;
+      }
+    }
+  }
+  const status = document.getElementById('horarios-status');
+  try{
+    await db.collection('config').doc('horarios').set({...cfg, atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()});
+    status.textContent = 'Horários salvos.';
+    setTimeout(()=>{ status.textContent=''; }, 3000);
+  }catch(err){
+    alert('Não foi possível salvar os horários: ' + err.message);
+  }
+});
+
+/* ---- Uso dos horários na Agenda ---- */
+function foraDoExpediente(iso, hora){
+  if(!iso) return '';
+  const c = HORARIOS.dias[diaDaData(iso)];
+  const bl = bloqueioDoDia(iso);
+  if(bl.diaTodo) return 'Você marcou este dia como indisponível.';
+  if(!c || !c.ativo) return 'Esse dia está marcado como sem atendimento.';
+  if(!hora) return '';
+  const m = horaMin(hora);
+  if(m < horaMin(c.ini) || m >= horaMin(c.fim)) return `Horário fora do expediente (${c.ini} às ${c.fim}).`;
+  if(c.pi && c.pf && m >= horaMin(c.pi) && m < horaMin(c.pf)) return `Horário dentro da pausa (${c.pi} às ${c.pf}).`;
+  if(bl.horarios.some(h=> m>=horaMin(h) && m<horaMin(h)+HORARIOS.duracao)) return 'Você marcou este horário como indisponível.';
+  return '';
+}
+function slotsDisponiveis(iso, ignorarId){
+  const c = HORARIOS.dias[diaDaData(iso)];
+  if(!c || !c.ativo) return null;
+  const dur = HORARIOS.duracao;
+  const bl = bloqueioDoDia(iso);
+  const ocupados = new Set(AGENDAMENTOS.filter(a=>a.data===iso && a.status!=='cancelado' && a.id!==ignorarId).map(a=>a.hora));
+  const out = [];
+  for(let t=horaMin(c.ini); t+dur<=horaMin(c.fim); t+=dur){
+    if(c.pi && c.pf && t < horaMin(c.pf) && t+dur > horaMin(c.pi)) continue;
+    const h = minHora(t);
+    out.push({hora:h, ocupado:ocupados.has(h), bloqueado: bl.diaTodo || bl.horarios.includes(h)});
+  }
+  return out;
+}
+function atualizarSlotsAgendamento(){
+  const aviso = document.getElementById('ag-aviso');
+  const box = document.getElementById('ag-slots');
+  const iso = document.getElementById('ag-data').value;
+  const hora = document.getElementById('ag-hora').value;
+  if(!iso){ aviso.textContent=''; box.innerHTML=''; return; }
+  const msg = foraDoExpediente(iso, hora);
+  aviso.textContent = msg;
+  aviso.style.color = msg ? 'var(--danger)' : '';
+  const slots = slotsDisponiveis(iso, document.getElementById('ag-id').value);
+  box.innerHTML = slots===null ? '' : slots.map(s=>
+    `<button type="button" class="slot ${s.ocupado?'busy':''} ${s.bloqueado?'blocked':''} ${s.hora===hora?'sel':''}" data-h="${s.hora}" ${(s.ocupado||s.bloqueado)?'disabled':''}>${s.hora}</button>`).join('');
+}
+document.getElementById('ag-data').addEventListener('input', atualizarSlotsAgendamento);
+document.getElementById('ag-hora').addEventListener('input', atualizarSlotsAgendamento);
+document.getElementById('ag-slots').addEventListener('click', e=>{
+  const b = e.target.closest('.slot');
+  if(!b || b.disabled) return;
+  document.getElementById('ag-hora').value = b.dataset.h;
+  atualizarSlotsAgendamento();
+});
+
+/* ---- Disponibilidade por dia (bloqueios) ---- */
+let BLOQUEIOS = {};
+function bloqueioDoDia(iso){
+  const b = BLOQUEIOS[iso] || {};
+  return {diaTodo: !!b.diaTodo, horarios: b.horarios || []};
+}
+async function salvarBloqueios(){
+  try{
+    await db.collection('config').doc('bloqueios').set({dias: BLOQUEIOS, atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()});
+  }catch(err){
+    alert('Não foi possível salvar: ' + err.message);
+  }
+}
+function limparBloqueioVazio(iso){
+  const b = BLOQUEIOS[iso];
+  if(b && !b.diaTodo && (!b.horarios || b.horarios.length===0)) delete BLOQUEIOS[iso];
+}
+function renderBloqueioDia(){
+  const iso = document.getElementById('bl-data').value;
+  const info = document.getElementById('bl-info');
+  const box = document.getElementById('bl-slots');
+  const btn = document.getElementById('bl-dia-todo');
+  if(!iso){ info.textContent='Escolha uma data.'; box.innerHTML=''; return; }
+  const bl = bloqueioDoDia(iso);
+  btn.textContent = bl.diaTodo ? 'Reabrir o dia' : 'Marcar dia todo indisponível';
+  const slots = slotsDisponiveis(iso, null);
+  if(slots===null){
+    info.textContent = 'Esse dia da semana está sem atendimento no padrão da semana.';
+    box.innerHTML = '';
+    return;
+  }
+  info.textContent = bl.diaTodo
+    ? 'Dia todo indisponível.'
+    : 'Toque nos horários que você NÃO pode atender. Vermelho = bloqueado por você; cinza riscado = já tem cliente agendada.';
+  box.innerHTML = slots.map(s=>{
+    const cls = s.ocupado ? 'busy' : (s.bloqueado ? 'blocked' : '');
+    return `<button type="button" class="slot ${cls}" data-h="${s.hora}" ${(s.ocupado||bl.diaTodo)?'disabled':''}>${s.hora}</button>`;
+  }).join('');
+}
+function renderBloqueios(){
+  renderBloqueioDia();
+  const hoje = todayISO();
+  const datas = Object.keys(BLOQUEIOS).filter(d=>d>=hoje).sort();
+  const body = document.getElementById('bl-lista');
+  const empty = document.getElementById('bl-empty');
+  if(datas.length===0){ body.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  body.innerHTML = datas.map(d=>{
+    const b = bloqueioDoDia(d);
+    const txt = b.diaTodo ? 'Dia todo' : escapeHtml([...b.horarios].sort().join(', '));
+    return `<tr>
+      <td>${escapeHtml(fmtDateBRLong(d))}</td>
+      <td>${txt}</td>
+      <td class="row-actions">
+        <button onclick="verBloqueio('${d}')">Ver</button>
+        <button class="danger" onclick="removerBloqueio('${d}')">Remover</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function verBloqueio(iso){
+  document.getElementById('bl-data').value = iso;
+  renderBloqueioDia();
+  document.getElementById('bl-data').scrollIntoView({behavior:'smooth', block:'center'});
+}
+async function removerBloqueio(iso){
+  if(!confirm('Remover as restrições desse dia?')) return;
+  delete BLOQUEIOS[iso];
+  renderBloqueios();
+  await salvarBloqueios();
+}
+document.getElementById('bl-data').value = todayISO();
+document.getElementById('bl-data').addEventListener('input', renderBloqueioDia);
+document.getElementById('nav').addEventListener('click', renderBloqueioDia);
+document.getElementById('bl-dia-todo').addEventListener('click', async ()=>{
+  const iso = document.getElementById('bl-data').value;
+  if(!iso) return;
+  const bl = bloqueioDoDia(iso);
+  BLOQUEIOS[iso] = {diaTodo: !bl.diaTodo, horarios: bl.horarios};
+  limparBloqueioVazio(iso);
+  renderBloqueios();
+  await salvarBloqueios();
+});
+document.getElementById('bl-slots').addEventListener('click', async e=>{
+  const b = e.target.closest('.slot');
+  if(!b || b.disabled) return;
+  const iso = document.getElementById('bl-data').value;
+  const bl = bloqueioDoDia(iso);
+  const h = b.dataset.h;
+  const horarios = bl.horarios.includes(h) ? bl.horarios.filter(x=>x!==h) : [...bl.horarios, h];
+  BLOQUEIOS[iso] = {diaTodo: false, horarios};
+  limparBloqueioVazio(iso);
+  renderBloqueios();
+  await salvarBloqueios();
+});
+
+renderHorarios();
 renderCalendar();
 </script>
 </body>
