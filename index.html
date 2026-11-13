@@ -1019,6 +1019,7 @@ function startListeners(){
     renderCalendar();
     renderDiaPanel();
     renderPainel();
+    if(!window._syncHorarios){ window._syncHorarios = true; reconciliarHorarios(); }
   }, err=>{ console.error('agendamentos', err); alert('Erro ao carregar a agenda: ' + err.message); }));
 
   unsubscribers.push(uCol('produtos').orderBy('nome').onSnapshot(snap=>{
@@ -1235,6 +1236,8 @@ document.getElementById('form-agendamento').addEventListener('submit', async (e)
     valorTotal: total,
     status: document.getElementById('ag-status').value,
   };
+  const antigo = id ? AGENDAMENTOS.find(x=>x.id===id) : null;
+  const antigoCopia = antigo ? {...antigo} : null;
   const aviso = foraDoExpediente(data.data, data.hora);
   if(aviso && !confirm(aviso + '\nSalvar mesmo assim?')) return;
   try{
@@ -1244,6 +1247,8 @@ document.getElementById('form-agendamento').addEventListener('submit', async (e)
       data.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('agendamentos').add(data);
     }
+    if(antigoCopia && (antigoCopia.data!==data.data || antigoCopia.hora!==data.hora || data.status==='cancelado')) await liberarHorario(antigoCopia, id);
+    if(data.status!=='cancelado') await setHorarioOcupado(data.data, data.hora, true);
     closeModal('modal-agendamento');
   }catch(err){
     alert('Não foi possível salvar o agendamento: ' + err.message);
@@ -1313,7 +1318,9 @@ document.getElementById('detalhe-excluir-btn').addEventListener('click', async (
   if(!detalheAgendamentoId) return;
   if(!confirm('Excluir este agendamento?')) return;
   try{
+    const ag = AGENDAMENTOS.find(x=>x.id===detalheAgendamentoId);
     await db.collection('agendamentos').doc(detalheAgendamentoId).delete();
+    if(ag) await liberarHorario(ag, detalheAgendamentoId);
     closeModal('modal-detalhe-agendamento');
   }catch(err){
     alert('Não foi possível excluir: ' + err.message);
@@ -1337,7 +1344,9 @@ function editarAgendamento(id){
 }
 async function excluirAgendamento(id){
   if(!confirm('Excluir este agendamento?')) return;
+  const ag = AGENDAMENTOS.find(x=>x.id===id);
   await db.collection('agendamentos').doc(id).delete();
+  if(ag) await liberarHorario(ag, id);
 }
 
 /* ============ ESTOQUE ============ */
@@ -1646,6 +1655,32 @@ document.getElementById('ag-slots').addEventListener('click', e=>{
   document.getElementById('ag-hora').value = b.dataset.h;
   atualizarSlotsAgendamento();
 });
+
+/* ---- Sincronização com a coleção 'horarios' (usada pelo site) ---- */
+async function setHorarioOcupado(data, hora, ocupado){
+  if(!data || !hora) return;
+  try{
+    await db.collection('horarios').doc(data+'_'+hora).set({data, hora, ocupado}, {merge:true});
+  }catch(err){ console.error('horarios', err); }
+}
+async function liberarHorario(a, ignorarId){
+  const outro = AGENDAMENTOS.some(x=> x.id!==ignorarId && x.data===a.data && x.hora===a.hora && x.status!=='cancelado');
+  if(!outro) await setHorarioOcupado(a.data, a.hora, false);
+}
+async function reconciliarHorarios(){
+  try{
+    const hoje = todayISO();
+    const batch = db.batch();
+    let n = 0;
+    AGENDAMENTOS.forEach(a=>{
+      if(a.status!=='cancelado' && a.data>=hoje && a.hora && n<400){
+        batch.set(db.collection('horarios').doc(a.data+'_'+a.hora), {data:a.data, hora:a.hora, ocupado:true}, {merge:true});
+        n++;
+      }
+    });
+    if(n) await batch.commit();
+  }catch(err){ console.error('reconciliar', err); }
+}
 
 /* ---- Disponibilidade por dia (bloqueios) ---- */
 let BLOQUEIOS = {};
