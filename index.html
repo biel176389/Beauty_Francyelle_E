@@ -436,6 +436,15 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-servico"><div class="modal"><div class="modal-head"><h3 id="modal-servico-title">Novo serviço</h3></div><div class="modal-body">
+<form id="form-servico"><input type="hidden" id="sv-id">
+<div class="field"><label for="sv-nome">Nome do serviço</label><input id="sv-nome" type="text" required maxlength="100"></div>
+<div class="field"><label for="sv-descricao">Descrição (opcional)</label><textarea id="sv-descricao" maxlength="240"></textarea></div>
+<div class="field"><label for="sv-preco">Valor (R$)</label><input id="sv-preco" type="number" required min="0" step="0.01" placeholder="0,00"></div>
+<div class="field"><label><input id="sv-ativo" type="checkbox" checked style="width:auto;margin-right:7px"> Serviço ativo e visível no site</label></div>
+<div class="modal-actions"><button type="button" class="btn btn-ghost" data-close="modal-servico">Cancelar</button><button type="submit" class="btn btn-gold">Salvar serviço</button></div>
+</form></div></div></div>
+
 <!-- ============ APP ============ -->
 <div id="app">
 <div class="shell">
@@ -451,6 +460,7 @@
       <div class="nav-item" data-page="clientes">Clientes</div>
       <div class="nav-item" data-page="estoque">Estoque</div>
       <div class="nav-item" data-page="financeiro">Financeiro</div>
+      <div class="nav-item" data-page="servicos">Serviços</div>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user" id="user-email"></div>
@@ -612,7 +622,15 @@
       </div>
     </section>
 
-      <!-- ---------- HORÁRIOS ---------- -->
+      <section id="page-servicos" class="page hidden">
+      <div class="page-head"><div><h2>Serviços</h2><p>Cadastre serviços e mantenha os valores do site atualizados.</p></div><button class="btn btn-gold fab-add" id="btn-novo-servico" type="button">+ Novo serviço</button></div>
+      <div class="panel"><div class="panel-head"><h3>Catálogo de serviços</h3><span class="muted" id="servicos-total">0 serviços</span></div>
+        <div class="panel-body no-pad"><table><thead><tr><th>Serviço</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody id="servicos-body"></tbody></table>
+        <div class="empty hidden" id="servicos-empty"><strong>Nenhum serviço cadastrado</strong>Cadastre o primeiro serviço para exibi-lo no site institucional.</div></div></div>
+      <p class="muted">Somente serviços ativos aparecem no site institucional.</p>
+    </section>
+
+    <!-- ---------- HORÁRIOS ---------- -->
     <section id="page-horarios" class="page hidden">
       <div class="page-head">
         <div>
@@ -1004,6 +1022,7 @@ let CLIENTES = [];
 let AGENDAMENTOS = [];
 let PRODUTOS = [];
 let FINANCEIRO = [];
+let SERVICOS = [];
 
 function startListeners(){
   const uCol = (name)=> db.collection(name);
@@ -1027,6 +1046,28 @@ function startListeners(){
     renderEstoque();
     renderPainel();
   }, err=>console.error('produtos', err)));
+
+  unsubscribers.push(uCol('servicos').orderBy('nome').onSnapshot(async snap=>{
+    const padrao=[
+      {id:'design-com-henna',nome:'Design com henna',preco:35},
+      {id:'design-comum',nome:'Design comum',preco:25},
+      {id:'brow-lamination-com-henna',nome:'Brow Lamination com henna',preco:85},
+      {id:'brow-lamination-com-tintura',nome:'Brow Lamination com tintura',preco:100},
+      {id:'brow-lamination-comum',nome:'Brow Lamination comum',preco:70},
+      {id:'boco',nome:'Buço',preco:10}
+    ];
+    if(snap.empty && !window._servicosIniciaisCriados){
+      window._servicosIniciaisCriados=true;
+      try{
+        const batch=db.batch();
+        padrao.forEach(s=>batch.set(uCol('servicos').doc(s.id),{nome:s.nome,descricao:'',preco:s.preco,ativo:true,criadoEm:firebase.firestore.FieldValue.serverTimestamp()}));
+        await batch.commit();
+      }catch(err){console.error('servicos-seed',err);}
+      return;
+    }
+    SERVICOS=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderServicos();
+  },err=>{console.error('servicos',err);alert('Erro ao carregar os serviços: '+err.message);}));
 
   unsubscribers.push(uCol('financeiro').orderBy('data','desc').onSnapshot(snap=>{
     FINANCEIRO = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -1423,6 +1464,44 @@ async function excluirProduto(id){
   if(!confirm('Excluir este produto?')) return;
   await db.collection('produtos').doc(id).delete();
 }
+
+/* ============ SERVIÇOS ============ */
+document.getElementById('btn-novo-servico').addEventListener('click',()=>{
+  document.getElementById('form-servico').reset();
+  document.getElementById('sv-id').value='';
+  document.getElementById('sv-ativo').checked=true;
+  document.getElementById('modal-servico-title').textContent='Novo serviço';
+  openModal('modal-servico');
+});
+document.getElementById('form-servico').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('sv-id').value;
+  const data={nome:document.getElementById('sv-nome').value.trim(),descricao:document.getElementById('sv-descricao').value.trim(),preco:Number(document.getElementById('sv-preco').value),ativo:document.getElementById('sv-ativo').checked,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()};
+  if(!data.nome||!Number.isFinite(data.preco)||data.preco<0){alert('Informe um nome e um valor válido.');return;}
+  try{
+    if(id) await db.collection('servicos').doc(id).update(data);
+    else{data.criadoEm=firebase.firestore.FieldValue.serverTimestamp();await db.collection('servicos').add(data);}
+    closeModal('modal-servico');
+  }catch(err){alert('Não foi possível salvar o serviço: '+err.message);}
+});
+function renderServicos(){
+  const body=document.getElementById('servicos-body'),empty=document.getElementById('servicos-empty');
+  document.getElementById('servicos-total').textContent=SERVICOS.length+' serviço(s)';
+  if(!SERVICOS.length){body.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  body.innerHTML=SERVICOS.map(s=>`<tr><td>${escapeHtml(s.nome)}</td><td>${escapeHtml(s.descricao||'—')}</td><td>${brl(s.preco)}</td><td><span class="badge ${s.ativo===false?'cancelado':'confirmado'}">${s.ativo===false?'Inativo':'Ativo'}</span></td><td class="row-actions"><button onclick="editarServico('${s.id}')">Editar</button></td></tr>`).join('');
+}
+function editarServico(id){
+  const s=SERVICOS.find(x=>x.id===id);if(!s)return;
+  document.getElementById('sv-id').value=s.id;
+  document.getElementById('sv-nome').value=s.nome||'';
+  document.getElementById('sv-descricao').value=s.descricao||'';
+  document.getElementById('sv-preco').value=Number(s.preco)||0;
+  document.getElementById('sv-ativo').checked=s.ativo!==false;
+  document.getElementById('modal-servico-title').textContent='Editar serviço';
+  openModal('modal-servico');
+}
+window.editarServico=editarServico;
 
 /* ============ FINANCEIRO ============ */
 document.getElementById('btn-novo-lancamento').addEventListener('click', ()=>{
